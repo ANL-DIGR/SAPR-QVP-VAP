@@ -10,7 +10,7 @@ QVP functions for creating a vad profile and for plotting.
     quicklooks_4panel
     get_metadata
     get_plot_values
-    get_colorbar_titles
+    get_field_parameters
  
  """
 
