@@ -59,6 +59,7 @@ class qvp():
                 radar = pyart.io.read(file)
             except TypeError:
                 continue
+            
 
             time = netCDF4.num2date(radar.time['data'][0],
                                     radar.time['units'])
@@ -97,17 +98,23 @@ class qvp():
             self.specific_attenuation.append(qvp['specific_attenuation'])
             self.signal_to_noise_ratio.append(qvp['SNR'])
             self.corrected_reflectivity.append(qvp['corrected_reflectivity'])
-            self.radar_echo_classification.append(qvp['radar_echo_classification'])
+            
+            if 'radar_echo_classification' in list(radar.fields.keys()):
+                self.radar_echo_classification.append(qvp['radar_echo_classification'])
+                
             self.path_integrated_attenuation.append(qvp['path_integrated_attenuation'])
             self.specific_differential_attenuation.append(
                 qvp['specific_differential_attenuation'])
             self.path_integrated_differential_attenuation.append(
                 qvp['path_integrated_differential_attenuation'])
             self.rain_rate_A.append(qvp['rain_rate_A'])
-        self.height = qvp['height']
-        self.alt = radar.altitude['data']
-        self.lon = radar.longitude['data']
-        self.lat = radar.latitude['data']
+            self.height = qvp['height']
+            self.alt = radar.altitude['data']
+            self.lon = radar.longitude['data']
+            self.lat = radar.latitude['data']
+            
+            del qvp
+            del radar
         
     def write(self, config, file_directory=None):
         if file_directory is None:
@@ -219,15 +226,18 @@ class qvp():
                                                'flag_meanings': 'multi_trip, rain, snow, no_scatter, melting, clutter',
                                                'valid_min': 0, 'valid_max': 5,
                                                '_FillValue': -9999})
-        ds['radar_echo_classification'] = xarray.Variable(['time', 'height'],
-                                                          ma.array(self.radar_echo_classification),
-                                                          attrs={'units': '1',
-                                                                 'long_name': 'Radar echo classification',
-                                                                 'flag_values': '0, 1, 2, 3, 4, 5, 6, 255, 65535',
-                                                                 'flag_meanings': ('no_data_available, non_meteorological_target,'
-                                                                                   + ' rain, wet_snow, snow, graupel, hail,'
-                                                                                   + ' area_not_scanned, area_not_scanned'),
-                                                                 '_FillValue': -9999})
+        
+        if self.radar_echo_classification:
+            ds['radar_echo_classification'] = xarray.Variable(['time', 'height'],
+                                                              ma.array(self.radar_echo_classification),
+                                                              attrs={'units': '1',
+                                                                     'long_name': 'Radar echo classification',
+                                                                     'flag_values': '0, 1, 2, 3, 4, 5, 6, 255, 65535',
+                                                                     'flag_meanings': ('no_data_available, non_meteorological_target,'
+                                                                                       + ' rain, wet_snow, snow, graupel, hail,'
+                                                                                       + ' area_not_scanned, area_not_scanned'),
+                                                                     '_FillValue': -9999})
+            
         ds['corrected_velocity'] = xarray.Variable(['time', 'height'],
                                                    ma.array(self.corrected_velocity),
                                                    attrs={'units': 'm/s', 
@@ -342,9 +352,9 @@ class qvp():
                              'calendar': 'gregorian'}}
         
         ds.attrs = attributes
-        time = ma.array(self.time, dtype='datetime64[ns]')
-        date = pd.to_datetime(time[0]).strftime('%Y%m%d')
-        ts = datetime.datetime.strptime(date, '%Y%m%d')
+        date = pd.to_datetime(
+            ma.array(self.time[0], dtype='datetime64[ns]')).strftime('%Y%m%d')
+
         
         command_line = ''
         for item in sys.argv:
