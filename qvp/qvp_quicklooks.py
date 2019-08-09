@@ -11,13 +11,25 @@ from .config import get_plot_values, get_field_parameters
 
 def quicklooks_1panel(file, field, config, image_directory=None, **kwargs):
     """
-    file : 
-    field :
-    config : 
-    image_directory :
+    Quciklooks, produces a one panel image using a QVP object NetCDF file.
+    
+    Parameters
+    ----------
+    file : str
+        File path to the QVP NetCDF file
+    field : str
+        String of the radar field
+    config : str
+        A string of the radar name found from config.py that contains values
+        for writing, specific to that radar.
+    
+    Optional Parameters
+    -------------------
+    image_directory : str
+        File path to the image folder to save the QVP image. If no
+        image file path is given, image path deafults to users home directory.
     
     """
-    
     if image_directory is None:
         image_directory = os.path.expanduser('~')
         
@@ -55,9 +67,25 @@ def quicklooks_1panel(file, field, config, image_directory=None, **kwargs):
 
 def quicklooks_4panel(file, fields, config, image_directory=None):
     """
+    Quciklooks, produces a four panel image using a QVP object NetCDF file.
+    
+    Parameters
+    ----------
+    file : str
+        File path to the QVP NetCDF file
+    fields : tuple/list
+        Tuple or list of strings of radar fields
+    config : str
+        A string of the radar name found from config.py that contains values
+        for writing, specific to that radar.
+    
+    Optional Parameters
+    -------------------
+    image_directory : str
+        File path to the image folder to save the QVP image. If no
+        image file path is given, image path deafults to users home directory.
     
     """
-    
     if image_directory is None:
         image_directory = os.path.expanduser('~')
     plot_values = get_plot_values(config)
