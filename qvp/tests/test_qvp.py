@@ -15,7 +15,6 @@ def test_qvp_profile():
     input_files.sort()
 
     desired_angle = 20.0
-    fields = 'corrected_reflectivity'
     config = 'xsaprqvpI5'
     outdir = '.'
     
