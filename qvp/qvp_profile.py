@@ -13,7 +13,25 @@ from .config import get_metadata
 
 class qvp():
 
-    def __init__(self, files, desired_angle=None, fields=None):
+    def __init__(self, files, desired_angle=None, gatefilter=None):
+        """
+        Quasi Vertical Profile
+        
+         Parameters
+        ----------
+        files : str
+            list of radar file path.
+        desired_angle : float
+            Radar tilt angle used for indexing the radar field(s).
+            None will default to 20.0
+        
+        Optional Parameter
+        ------------------
+        gatefilter : GateFilter
+            A GateFilter indicating radar gates that should be excluded
+            from the import qvp calculation.
+       
+        """
         self.time = []
         self.base_time = []
         self.range = []
@@ -45,14 +63,13 @@ class qvp():
         self.path_integrated_differential_attenuation = []
         self.rain_rate_A = []
         
-        self.desired_angle = desired_angle
-        self.fields = fields
-        
-        self.create_qvp(files)
+        self.create_qvp(files, desired_angle, gatefilter)
 
-    def create_qvp(self, files, **kwargs):
+    def create_qvp(self, files, desired_angle, gatefilter):
         """
-        
+        Creates a QVP object containig fields from a radar object that can
+        be used to plot and produce the quasi vertical profile.
+            
         """
         for file in files:
             try:
@@ -66,8 +83,8 @@ class qvp():
             rtime = datetime.datetime.strftime(
                 time, '%Y-%m-%dT%H:%M:%S')
             qvp = pyart.retrieve.quasi_vertical_profile(
-                radar, self.desired_angle, self.fields, **kwargs)
-            
+                radar, desired_angle=desired_angle, gatefilter=gatefilter)
+
             self.time.append(rtime)
             self.base_time.append(time)
             self.range.append(qvp['range'])
@@ -98,10 +115,10 @@ class qvp():
             self.specific_attenuation.append(qvp['specific_attenuation'])
             self.signal_to_noise_ratio.append(qvp['SNR'])
             self.corrected_reflectivity.append(qvp['corrected_reflectivity'])
-            
+
             if 'radar_echo_classification' in list(radar.fields.keys()):
                 self.radar_echo_classification.append(qvp['radar_echo_classification'])
-                
+
             self.path_integrated_attenuation.append(qvp['path_integrated_attenuation'])
             self.specific_differential_attenuation.append(
                 qvp['specific_differential_attenuation'])
@@ -117,6 +134,22 @@ class qvp():
             del radar
         
     def write(self, config, file_directory=None):
+        """
+        Writes QVP file to a netCDF output
+        
+        Parameters
+        ----------
+        config : str
+            A string of the radar name found from config.py that contains values
+            for writing, specific to that radar.
+        
+        Optional Parameters
+        -------------------
+        file_directory : str
+            File path to the file output folder of which to save the QVP netCDF files.
+            If no file path is given, file path defaults to users home directory.
+        
+        """
         if file_directory is None:
             file_directory = os.path.expanduser('~')
         
